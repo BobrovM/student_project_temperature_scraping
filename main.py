@@ -1,11 +1,27 @@
 import streamlit as st
 import plotly.express as px
-import pandas as pd
+import psycopg2 as pg
 
 
-df = pd.read_csv("data.txt")
+connection = pg.connect("dbname=temp_scrape user=postgres password=4531")
+cursor = connection.cursor()
+cursor.execute("SELECT * FROM temperatures")
+data = cursor.fetchall()
+cursor.close()
+connection.close()
 
-line = px.line(x=df["datetime"], y=df["temperature"],
+
+print(data)
+
+timestamps = []
+tempers = []
+
+for value in data:
+    timestamps.append(value[0])
+    tempers.append(value[1])
+
+
+line = px.line(x=timestamps, y=tempers,
                labels={"x": "Datetime", "y": "Temperature (C)"})
 
 st.plotly_chart(line)

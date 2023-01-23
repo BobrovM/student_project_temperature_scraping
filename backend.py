@@ -1,9 +1,20 @@
 from datetime import datetime
 import requests
 import selectorlib
+import psycopg2 as pg
 
 
 URL = "http://programmer100.pythonanywhere.com/"
+
+connection = pg.connect("dbname=temp_scrape user=postgres password=4531")
+cursor = connection.cursor()
+cursor.execute("CREATE TABLE IF NOT EXISTS temperatures("
+               "record_time timestamp,"
+               "temperature real"
+               ");")
+connection.commit()
+cursor.close()
+connection.close()
 
 
 def scrape(link):
@@ -19,11 +30,12 @@ def extract(text):
 
 
 def record(temperature):
-    row = datetime.now().strftime("%y-%m-%d-%H-%M-%S")
-    row += "," + str(temperature)+"\n"
-
-    with open("data.txt", "a") as file:
-        file.write(row)
+    connection = pg.connect("dbname=temp_scrape user=postgres password=4531")
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO temperatures VALUES(%s, %s)", (datetime.now(), temperature))
+    connection.commit()
+    cursor.close()
+    connection.close()
 
 
 if __name__ == "__main__":
